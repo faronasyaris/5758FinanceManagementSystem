@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         $defaultPassword = 'password'; // Default password untuk setup awal
 
         // 1. Eksekutif / Owner (1 akun)
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['email' => 'bos@5758inc.com'],
             [
                 'name' => 'Owner 5758inc',
@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // 2. Admin Keuangan 1
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['email' => 'admin1@5758inc.com'],
             [
                 'name' => 'Admin Keuangan 1',
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // 3. Admin Keuangan 2
-        User::updateOrCreate(
+        User::firstOrCreate(
             ['email' => 'admin2@5758inc.com'],
             [
                 'name' => 'Admin Keuangan 2',

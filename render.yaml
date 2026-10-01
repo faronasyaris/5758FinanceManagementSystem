@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: 5758fms
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_NAME
+        value: 5758inc Finance Management System
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://5758fms.onrender.com
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: finance-5758-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: finance-5758-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: finance-5758-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: finance-5758-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: finance-5758-db
+          property: password
+
+databases:
+  - name: finance-5758-db
+    plan: free
+    region: singapore
+    databaseName: finance_5758
+    user: postgres
