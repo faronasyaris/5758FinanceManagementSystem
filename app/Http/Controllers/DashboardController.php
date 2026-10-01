@@ -76,6 +76,22 @@ class DashboardController extends Controller
         // Pending Expense = Kewajiban / Kasbon staf belum kembali
         $totalPendingExpense = Transaction::pending()->expense()->sum('nominal');
 
+        // 2b. Detail Piutang (Pending Income) - diurutkan berdasarkan jatuh tempo terdekat (yang dekat akan jadi pemasukan)
+        $upcomingReceivables = Transaction::with(['project.client', 'category'])
+            ->pending()
+            ->income()
+            ->orderByRaw('due_date IS NULL, due_date ASC')
+            ->latest('id')
+            ->get();
+
+        // 2c. Detail Hutang & Kasbon (Pending Expense) - diurutkan berdasarkan tempo waktu yang paling dekat
+        $upcomingPayables = Transaction::with(['project.client', 'category'])
+            ->pending()
+            ->expense()
+            ->orderByRaw('due_date IS NULL, due_date ASC')
+            ->latest('id')
+            ->get();
+
         // 3. Overdue Alerts (Radar Otomatis: Belum Cair & Melewati Due Date)
         $overdueAlerts = Transaction::with(['project.client', 'category'])
             ->overdue()
@@ -110,6 +126,8 @@ class DashboardController extends Controller
             'periodNetCash' => $periodNetCash,
             'totalPendingIncome' => $totalPendingIncome,
             'totalPendingExpense' => $totalPendingExpense,
+            'upcomingReceivables' => $upcomingReceivables,
+            'upcomingPayables' => $upcomingPayables,
             'overdueAlerts' => $overdueAlerts,
             'ongoingProjects' => $ongoingProjects,
             'timeframe' => $timeframe,

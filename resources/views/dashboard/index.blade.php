@@ -132,21 +132,31 @@
 
             <!-- Itemized Accounts Breakdown -->
             <div class="mt-5 pt-4 border-t border-slate-800/80">
-                <div class="text-[11px] uppercase font-bold tracking-wider text-slate-400 mb-2">Rincian Sumber Kas:</div>
-                <div class="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-amber-400">Rincian Sumber Kas:</span>
+                    <span class="text-[10px] text-slate-500">({{ $accounts->count() }} rekening)</span>
+                </div>
+                <div class="space-y-2 max-h-44 overflow-y-auto pr-1">
                     @forelse ($accounts as $acc)
-                        <div class="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-slate-800/40 border border-slate-800/60">
-                            <span class="text-slate-300 font-medium truncate">{{ $acc->name }}</span>
-                            <span class="font-bold text-white">Rp {{ number_format($acc->current_balance, 0, ',', '.') }}</span>
+                        <div class="flex items-center justify-between text-xs py-2 px-3 rounded-xl bg-slate-800/40 border border-slate-800/70 hover:border-amber-400/30 transition-all">
+                            <span class="text-slate-200 font-bold truncate">{{ $acc->name }}</span>
+                            <span class="font-black text-white ml-2 whitespace-nowrap">Rp {{ number_format($acc->current_balance, 0, ',', '.') }}</span>
                         </div>
                     @empty
-                        <span class="text-xs text-slate-500 italic">Belum ada akun rekening kas terdaftar.</span>
+                        <div class="py-3 text-center text-xs text-slate-500 italic">Belum ada akun rekening kas terdaftar.</div>
                     @endforelse
                 </div>
             </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-slate-400">Arus Kas Bersih ({{ $periodLabel }}):</span>
+                <span class="font-bold {{ $periodNetCash >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+                    Rp {{ number_format($periodNetCash, 0, ',', '.') }}
+                </span>
+            </div>
         </div>
 
-        <!-- Card 2: Total Piutang (Uang di Luar) -->
+        <!-- Card 2: Total Piutang (Uang di Luar - Yang Dekat Jadi Pemasukan) -->
         <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/80 border border-slate-800 shadow-xl flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between">
@@ -161,13 +171,62 @@
                 <p class="text-xs text-slate-400 mt-1">Tagihan termin klien yang belum cair/diterima.</p>
             </div>
 
-            <div class="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span class="text-slate-400">Uang Masuk Riil ({{ $periodLabel }}):</span>
+            <!-- Detail Piutang (Urut Tempo Terdekat - Yang Dekat Jadi Pemasukan) -->
+            <div class="mt-5 pt-4 border-t border-slate-800/80">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-blue-400">Rincian Piutang (Urut Tempo Terdekat):</span>
+                    <span class="text-[10px] text-slate-500">({{ $upcomingReceivables->count() }} tagihan)</span>
+                </div>
+                <div class="space-y-2 max-h-44 overflow-y-auto pr-1">
+                    @forelse ($upcomingReceivables as $rec)
+                        <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-800/70 hover:border-blue-500/30 transition-all">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="overflow-hidden">
+                                    <div class="text-xs font-bold text-white truncate">
+                                        {{ $rec->project ? $rec->project->name : 'Non-Proyek' }}
+                                    </div>
+                                    <div class="text-[11px] text-blue-300 truncate">
+                                        {{ $rec->description ?? ($rec->category ? $rec->category->name : 'Tagihan Termin') }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">
+                                        Klien: <span class="text-slate-300 font-medium">{{ $rec->project && $rec->project->client ? $rec->project->client->name : '-' }}</span>
+                                    </div>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-xs font-black text-blue-400">
+                                        Rp {{ number_format($rec->nominal, 0, ',', '.') }}
+                                    </div>
+                                    @if ($rec->due_date)
+                                        @if ($rec->isOverdue())
+                                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                                Overdue ({{ $rec->due_date->format('d/m') }})
+                                            </span>
+                                        @else
+                                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                Tempo: {{ $rec->due_date->format('d/m/Y') }}
+                                            </span>
+                                        @endif
+                                    @else
+                                        <span class="text-[10px] text-slate-500 italic">Tanpa tempo</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="py-3 text-center text-xs text-slate-500 italic">
+                            Tidak ada piutang pending saat ini. Semua tagihan telah lunas.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-slate-400">Pemasukan Riil ({{ $periodLabel }}):</span>
                 <span class="font-bold text-emerald-400">Rp {{ number_format($periodRealizedIn, 0, ',', '.') }}</span>
             </div>
         </div>
 
-        <!-- Card 3: Total Hutang / Kasbon (Kewajiban) -->
+        <!-- Card 3: Total Hutang / Kasbon (Kewajiban Yang Harus Dibayar) -->
         <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/80 border border-slate-800 shadow-xl flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between">
@@ -179,11 +238,60 @@
                 <div class="text-2xl lg:text-3xl font-black text-rose-400 tracking-tight mt-3">
                     Rp {{ number_format($totalPendingExpense, 0, ',', '.') }}
                 </div>
-                <p class="text-xs text-slate-400 mt-1">Tagihan vendor & kasbon karyawan yang belum diselesaikan.</p>
+                <p class="text-xs text-slate-400 mt-1">Tagihan vendor & kasbon karyawan yang harus dibayar.</p>
             </div>
 
-            <div class="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span class="text-slate-400">Uang Keluar Riil ({{ $periodLabel }}):</span>
+            <!-- Detail Hutang & Kasbon (Urut Tempo Waktu Terdekat Yang Harus Dibayar) -->
+            <div class="mt-5 pt-4 border-t border-slate-800/80">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-rose-400">Kewajiban Keluar (Urut Tempo Terdekat):</span>
+                    <span class="text-[10px] text-slate-500">({{ $upcomingPayables->count() }} kewajiban)</span>
+                </div>
+                <div class="space-y-2 max-h-44 overflow-y-auto pr-1">
+                    @forelse ($upcomingPayables as $pay)
+                        <div class="p-2.5 rounded-xl bg-slate-800/40 border border-slate-800/70 hover:border-rose-500/30 transition-all">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="overflow-hidden">
+                                    <div class="text-xs font-bold text-white truncate">
+                                        {{ $pay->project ? $pay->project->name : 'Operasional Umum' }}
+                                    </div>
+                                    <div class="text-[11px] text-rose-300 truncate">
+                                        {{ $pay->description ?? ($pay->category ? $pay->category->name : 'Kasbon / Tagihan') }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">
+                                        Kategori: <span class="text-slate-300 font-medium">{{ $pay->category ? $pay->category->name : 'Biaya' }}</span>
+                                    </div>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-xs font-black text-rose-400">
+                                        Rp {{ number_format($pay->nominal, 0, ',', '.') }}
+                                    </div>
+                                    @if ($pay->due_date)
+                                        @if ($pay->isOverdue())
+                                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                                Overdue ({{ $pay->due_date->format('d/m') }})
+                                            </span>
+                                        @else
+                                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-400/10 text-amber-300 border border-amber-400/20">
+                                                Tempo: {{ $pay->due_date->format('d/m/Y') }}
+                                            </span>
+                                        @endif
+                                    @else
+                                        <span class="text-[10px] text-slate-500 italic">Tanpa tempo</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="py-3 text-center text-xs text-slate-500 italic">
+                            Tidak ada kewajiban atau hutang pending saat ini.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-slate-400">Pengeluaran Riil ({{ $periodLabel }}):</span>
                 <span class="font-bold text-rose-400">Rp {{ number_format($periodRealizedOut, 0, ',', '.') }}</span>
             </div>
         </div>
