@@ -115,6 +115,18 @@
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 <span>Laporan Keseluruhan</span>
             </a>
+
+            @if(Auth::user() && Auth::user()->isOwner())
+                <!-- Section Header -->
+                <div class="pt-4 pb-1 px-3 text-[10px] uppercase font-bold tracking-wider text-amber-400">Pengaturan Owner</div>
+
+                <!-- Keamanan & 2FA User -->
+                <a href="{{ route('users.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all {{ request()->routeIs('users.*') ? 'bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Keamanan & 2FA User</span>
+                </a>
+            @endif
         </nav>
 
         <!-- Footer / Logout -->
