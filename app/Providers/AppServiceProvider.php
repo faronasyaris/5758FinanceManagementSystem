@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if ($this->app->environment('production') || request()->header('x-forwarded-proto') === 'https' || str_contains(request()->getHost(), 'loca.lt')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }

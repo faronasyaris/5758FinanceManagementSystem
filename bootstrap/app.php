@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             '2fa' => \App\Http\Middleware\EnsureTwoFactorAuthenticated::class,
             'role' => \App\Http\Middleware\EnsureRole::class,
